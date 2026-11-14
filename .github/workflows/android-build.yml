@@ -24,7 +24,10 @@ jobs:
           repository: skylersaleh/SkyEmu
           ref: dev
           path: skyemu
-
+      - name: Install Zenith GBA logo
+        run: |
+          unzip -o Zenith-GBA-v03-logo-resources.zip -d logo_patch
+          cp -R logo_patch/app/src/main/res/. skyemu/tools/android_project/app/src/main/res/
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
