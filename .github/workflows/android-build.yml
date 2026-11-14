@@ -1,0 +1,62 @@
+
+name: Build Zenith GBA Android
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/android-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Zenith GBA
+        uses: actions/checkout@v4
+
+      - name: Checkout SkyEmu engine
+        uses: actions/checkout@v4
+        with:
+          repository: skylersaleh/SkyEmu
+          ref: dev
+          path: skyemu
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Set up Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Brand as Zenith GBA
+        working-directory: skyemu
+        run: |
+          sed -i 's/>SkyEmu</>Zenith GBA</' tools/android_project/app/src/main/res/values/strings.xml
+
+      - name: Build APK
+        working-directory: skyemu/tools/android_project
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon clean assembleRelease
+          ls -lah app/build/outputs/apk/release/
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zenith-GBA-Android-APK
+          path: skyemu/tools/android_project/app/build/outputs/apk/release/com.sky.SkyEmu-*-release.apk
+          if-no-files-found: error
+
+      - name: Upload license
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zenith-GBA-license
+          path: skyemu/LICENSE
